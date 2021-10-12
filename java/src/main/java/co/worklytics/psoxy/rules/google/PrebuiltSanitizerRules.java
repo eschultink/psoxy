@@ -113,21 +113,23 @@ public class PrebuiltSanitizerRules {
             .build())
         .build();
 
+    //NOTE: email header names are theoretically case-insensitive, but json path standard doesn't
+    // support that; all we can do is enumerate expected variants
     static final Rules GMAIL = Rules.builder()
        //cases that we expect may contain a comma-separated list of values, per RFC 2822
        .emailHeaderPseudonymization(Rules.Rule.builder()
                   .relativeUrlRegex("\\/gmail\\/v1\\/users\\/.*?\\/messages\\/.*")
-                  .jsonPath("$.payload.headers[?(@.name in ['To','TO','to','From','FROM','from','cc','CC','bcc','BCC'])].value")
+                  .jsonPath("$.payload.headers[?(@.name in ['To','TO','to','Resent-To','RESENT-TO','From','FROM','from','Resent-From','RESENT-FROM','cc','Cc','CC','Resent-Cc','RESENT-CC','bcc','BCC','Bcc','Resent-Bcc','RESENT-BCC'])].value")
                .build())
        //cases that we expect to be truly single-valued, per RFC 2822
        .pseudonymization(Rules.Rule.builder()
                .relativeUrlRegex("\\/gmail\\/v1\\/users\\/.*?\\/messages\\/.*")
-               .jsonPath("$.payload.headers[?(@.name in ['X-Original-Sender','Delivered-To','Sender'])].value")
+               .jsonPath("$.payload.headers[?(@.name in ['X-Original-Sender','Delivered-To','Sender','Resent-Sender','SENDER','RESENT-SENDER'])].value")
            .build()
        )
        .redaction(Rules.Rule.builder()
                .relativeUrlRegex("\\/gmail\\/v1\\/users\\/.*?\\/messages\\/.*")
-               .jsonPath("$.payload.headers[?(@.name in ['Subject', 'Received'])]")
+               .jsonPath("$.payload.headers[?(@.name in ['Subject', 'SUBJECT', 'Received'])]")
                .build()
        )
        .build();
